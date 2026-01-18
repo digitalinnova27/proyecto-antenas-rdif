@@ -1,76 +1,88 @@
-import React from 'react'
-import { Box, Paper, Typography, TextField, Button } from '@mui/material'
+import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { useNavigate } from 'react-router-dom'
+import adminImg from '../assets/admin.png'
+import operadorImg from '../assets/operador.png'
+import '../styles/login.css'
 
 export default function Login() {
   const { login } = useAuth()
-  const navigate = useNavigate()
 
-  const [username, setUsername] = React.useState('')
-  const [password, setPassword] = React.useState('')
-  const [error, setError] = React.useState('')
+  const [selectedRole, setSelectedRole] = useState(null)
+  const [step, setStep] = useState('role') // role | credentials
+  const [user, setUser] = useState('')
+  const [password, setPassword] = useState('')
 
-  const submit = () => {
-    const ok = login(username, password)
-    if (!ok) {
-      setError('Credenciales incorrectas')
-    } else {
-      navigate('/dashboard')
+  const handleSelectRole = (role) => {
+    setSelectedRole(role)
+    setTimeout(() => setStep('credentials'), 400)
+  }
+
+  const handleLogin = () => {
+    // credenciales mock (DEMO)
+    const credentials = {
+      admin: { user: 'admin', password: 'admin123' },
+      operator: { user: 'operador', password: '1234' }
     }
+
+    const valid = credentials[selectedRole]
+
+    if (!valid || user !== valid.user || password !== valid.password) {
+      alert('Credenciales incorrectas')
+      return
+    }
+
+    login(selectedRole)
   }
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        backgroundColor: '#0B0C10',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}
-    >
-      <Paper sx={{ p: 4, width: 360, backgroundColor: '#1F2833' }}>
-        <Typography variant="h6" sx={{ mb: 2, textAlign: 'center' }}>
-          Ingreso al sistema
-        </Typography>
-
-        <TextField
-          fullWidth
-          label="Usuario"
-          value={username}
-          onChange={e => setUsername(e.target.value)}
-          sx={{ mb: 2 }}
-        />
-
-        <TextField
-          fullWidth
-          type="password"
-          label="Contraseña"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          sx={{ mb: 2 }}
-        />
-
-        {error && (
-          <Typography color="error" variant="caption">
-            {error}
-          </Typography>
+    <div className="login-container">
+      <div className={`cards ${selectedRole ? 'selected' : ''}`}>
+        
+        {/* ADMIN */}
+        {(step === 'role' || selectedRole === 'admin') && (
+          <div
+            className={`card admin ${selectedRole === 'admin' ? 'active' : ''}`}
+            onClick={() => step === 'role' && handleSelectRole('admin')}
+          >
+            <img src={adminImg} alt="Administrador" />
+            <h2>Administrador</h2>
+            <p>Control total del sistema</p>
+          </div>
         )}
 
-        <Button
-          fullWidth
-          variant="contained"
-          sx={{ mt: 2 }}
-          onClick={submit}
-        >
-          Enviar
-        </Button>
+        {/* OPERADOR */}
+        {(step === 'role' || selectedRole === 'operator') && (
+          <div
+            className={`card operator ${selectedRole === 'operator' ? 'active' : ''}`}
+            onClick={() => step === 'role' && handleSelectRole('operator')}
+          >
+            <img src={operadorImg} alt="Operador" />
+            <h2>Operador</h2>
+            <p>Gestión operativa</p>
+          </div>
+        )}
+      </div>
 
-        <Typography variant="caption" sx={{ mt: 2, display: 'block' }}>
-          admin / admin123 — operador / 4321
-        </Typography>
-      </Paper>
-    </Box>
+      {/* FORMULARIO */}
+      {step === 'credentials' && (
+        <div className="credentials">
+          <input
+            type="text"
+            placeholder="Usuario"
+            value={user}
+            onChange={e => setUser(e.target.value)}
+          />
+          <input
+            type="password"
+            placeholder="Contraseña"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+          />
+          <button onClick={handleLogin}>
+            Ingresar
+          </button>
+        </div>
+      )}
+    </div>
   )
 }
