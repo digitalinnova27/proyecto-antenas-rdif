@@ -67,6 +67,16 @@ export default function Inventory() {
   const [detail, setDetail] = React.useState(null)
   const [draftDetail, setDraftDetail] = React.useState(null)
 
+  /* ===== NUEVO: AGREGAR PRODUCTO ===== */
+  const [openAdd, setOpenAdd] = React.useState(false)
+  const [newProduct, setNewProduct] = React.useState({
+    name: '',
+    sku: '',
+    category: '',
+    qty: '',
+    rfid: ''
+  })
+
   /* ================= HELPERS ================= */
 
   const reservedFromEvents = productId =>
@@ -96,7 +106,7 @@ export default function Inventory() {
     (filter.state ? countByState(p, filter.state) > 0 : true)
   )
 
-  /* ================= DETAIL (DRAFT) ================= */
+  /* ================= DETALLE ================= */
 
   const updateUnitState = (unitId, newState) => {
     setDraftDetail(prev => ({
@@ -115,6 +125,31 @@ export default function Inventory() {
     setDraftDetail(null)
   }
 
+  /* ================= AGREGAR PRODUCTO ================= */
+
+  const handleAddProduct = () => {
+    const id = Date.now()
+
+    const qty = Number(newProduct.qty)
+
+    const product = {
+      id,
+      name: newProduct.name,
+      sku: newProduct.sku,
+      category: newProduct.category,
+      total: qty,
+      units: Array.from({ length: qty }).map((_, i) => ({
+        id: `${id}-${i + 1}`,
+        rfid: `${newProduct.rfid}-${i + 1}`,
+        state: 'Disponible'
+      }))
+    }
+
+    setProducts(prev => [...prev, product])
+    setOpenAdd(false)
+    setNewProduct({ name: '', sku: '', category: '', qty: '', rfid: '' })
+  }
+
   return (
     <Box>
       <Typography variant="h5" sx={{ mb: 2 }}>
@@ -123,12 +158,31 @@ export default function Inventory() {
 
       {/* ================= FILTROS ================= */}
 
+      {/* ================= FILTROS ================= */}
+
       <Paper sx={{ p: 2, mb: 2 }}>
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 2,
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap'
+          }}
+        >
+          {/* FILTROS */}
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 2,
+              flexWrap: 'wrap',
+              alignItems: 'center'
+            }}
+          >
             <TextField
               label="SKU"
               size="small"
+              sx={{ minWidth: 160 }}
               value={filter.sku}
               onChange={e => setFilter({ ...filter, sku: e.target.value })}
             />
@@ -137,7 +191,7 @@ export default function Inventory() {
               select
               label="Categoría"
               size="small"
-              sx={{ minWidth: 160 }}
+              sx={{ minWidth: 180 }}
               value={filter.category}
               onChange={e => setFilter({ ...filter, category: e.target.value })}
             >
@@ -151,7 +205,7 @@ export default function Inventory() {
               select
               label="Estado"
               size="small"
-              sx={{ minWidth: 180 }}
+              sx={{ minWidth: 200 }}
               value={filter.state}
               onChange={e => setFilter({ ...filter, state: e.target.value })}
             >
@@ -160,15 +214,20 @@ export default function Inventory() {
                 <MenuItem key={s} value={s}>{s}</MenuItem>
               ))}
             </TextField>
-
-            <Button variant="contained">Exportar</Button>
           </Box>
 
-          <Button variant="contained" color="success">
+          {/* BOTÓN */}
+          <Button
+            variant="contained"
+            color="success"
+            onClick={() => setOpenAdd(true)}
+            sx={{ whiteSpace: 'nowrap' }}
+          >
             Agregar producto
           </Button>
         </Box>
       </Paper>
+
 
       {/* ================= TABLA ================= */}
 
@@ -223,66 +282,54 @@ export default function Inventory() {
         </Table>
       </Paper>
 
-      {/* ================= DETALLE ================= */}
+      {/* ================= MODAL AGREGAR ================= */}
 
-      <Dialog open={Boolean(detail)} onClose={() => setDetail(null)} fullWidth>
-        <DialogTitle>Detalle del producto</DialogTitle>
+      <Dialog open={openAdd} onClose={() => setOpenAdd(false)} fullWidth>
+        <DialogTitle>Agregar producto</DialogTitle>
 
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {draftDetail && (
-            <>
-              <Typography><strong>{draftDetail.name}</strong></Typography>
-              <Typography>SKU: {draftDetail.sku}</Typography>
-              <Typography>Categoría: {draftDetail.category}</Typography>
+          <TextField
+            label="Nombre"
+            value={newProduct.name}
+            onChange={e => setNewProduct({ ...newProduct, name: e.target.value })}
+          />
 
-              <Paper sx={{ mt: 2 }}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>RFID</TableCell>
-                      <TableCell>Estado</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {draftDetail.units.map(u => (
-                      <TableRow key={u.id}>
-                        <TableCell>{u.rfid}</TableCell>
-                        <TableCell>
-                          <Select
-                            size="small"
-                            value={u.state}
-                            onChange={e =>
-                              updateUnitState(u.id, e.target.value)
-                            }
-                          >
-                            {STATES.filter(s =>
-                              !['Disponible', 'Reservado'].includes(s)
-                            ).map(s => (
-                              <MenuItem key={s} value={s}>{s}</MenuItem>
-                            ))}
-                          </Select>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </Paper>
-            </>
-          )}
+          <TextField
+            label="SKU"
+            value={newProduct.sku}
+            onChange={e => setNewProduct({ ...newProduct, sku: e.target.value })}
+          />
+
+          <TextField
+            select
+            label="Categoría"
+            value={newProduct.category}
+            onChange={e => setNewProduct({ ...newProduct, category: e.target.value })}
+          >
+            {categories.map(c => (
+              <MenuItem key={c} value={c}>{c}</MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            type="number"
+            label="Cantidad"
+            value={newProduct.qty}
+            onChange={e => setNewProduct({ ...newProduct, qty: e.target.value })}
+          />
+
+          <TextField
+            label="RFID base"
+            value={newProduct.rfid}
+            onChange={e => setNewProduct({ ...newProduct, rfid: e.target.value })}
+            helperText="Ej: RFID-PROD"
+          />
         </DialogContent>
 
         <DialogActions>
-          <Button
-            onClick={() => {
-              setDetail(null)
-              setDraftDetail(null)
-            }}
-          >
-            Cancelar
-          </Button>
-
-          <Button variant="contained" onClick={saveDetailChanges}>
-            Guardar cambios
+          <Button onClick={() => setOpenAdd(false)}>Cancelar</Button>
+          <Button variant="contained" onClick={handleAddProduct}>
+            Guardar
           </Button>
         </DialogActions>
       </Dialog>

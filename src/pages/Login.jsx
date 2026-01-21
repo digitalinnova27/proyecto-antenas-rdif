@@ -14,14 +14,18 @@ export default function Login() {
 
   const handleSelectRole = (role) => {
     setSelectedRole(role)
-    setTimeout(() => setStep('credentials'), 400)
+
+    // ⏳ Espera a que la card se centre antes de mostrar el form
+    setTimeout(() => {
+      setStep('credentials')
+    }, 400)
   }
 
   const handleLogin = () => {
     // credenciales mock (DEMO)
     const credentials = {
-      admin: { user: 'admin', password: 'admin123' },
-      operator: { user: 'operador', password: '1234' }
+      admin: { user: 'admin', password: 'ad123' },
+      operator: { user: 'operador', password: 'ope123' }
     }
 
     const valid = credentials[selectedRole]
@@ -36,8 +40,10 @@ export default function Login() {
 
   return (
     <div className="login-container">
+
+      {/* ===== CARDS ===== */}
       <div className={`cards ${selectedRole ? 'selected' : ''}`}>
-        
+
         {/* ADMIN */}
         {(step === 'role' || selectedRole === 'admin') && (
           <div
@@ -63,26 +69,27 @@ export default function Login() {
         )}
       </div>
 
-      {/* FORMULARIO */}
-      {step === 'credentials' && (
-        <div className="credentials">
-          <input
-            type="text"
-            placeholder="Usuario"
-            value={user}
-            onChange={e => setUser(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="Contraseña"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-          />
-          <button onClick={handleLogin}>
-            Ingresar
-          </button>
-        </div>
-      )}
+      {/* ===== FORMULARIO (SIEMPRE MONTADO) ===== */}
+      <div className={`credentials ${step === 'credentials' ? 'show' : ''}`}>
+        <input
+          type="text"
+          placeholder="Usuario"
+          value={user}
+          onChange={e => setUser(e.target.value)}
+        />
+
+        <input
+          type="password"
+          placeholder="Contraseña"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+        />
+
+        <button onClick={handleLogin}>
+          Ingresar
+        </button>
+      </div>
+
     </div>
   )
 }
