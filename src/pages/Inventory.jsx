@@ -328,8 +328,7 @@ export default function Inventory() {
 
         <DialogActions>
           <Button onClick={() => setOpenAdd(false)}>Cancelar</Button>
-          <Button variant="contained" onClick={handleAddProduct}>
-            Guardar
+          <Button variant="contained" onClick={handleAddProduct}>Guardar
           </Button>
         </DialogActions>
       </Dialog>
